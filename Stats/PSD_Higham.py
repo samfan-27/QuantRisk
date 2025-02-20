@@ -2,10 +2,10 @@ import numpy as np
 
 
 # Higham’s method
-# Find the nearest positive semi-definite matrix using Higham’s method
 # Adapt from https://stackoverflow.com/questions/10939213/how-can-i-calculate-the-nearest-positive-semi-definite-matrix
 # https://blogs.sas.com/content/iml/2012/11/28/computing-the-nearest-correlation-matrix.html
 def ProjS(X):
+    '''Find the nearest positive semi-definite matrix using Higham’s method'''
     eigvals, eigvecs = np.linalg.eigh(X)
     eigvals = np.maximum(eigvals, 0)
     return eigvecs @ np.diag(eigvals) @ eigvecs.T

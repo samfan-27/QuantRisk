@@ -2,6 +2,7 @@ import numpy as np
 
 
 def calculate_exponential_covariance(df, lambd):
+    '''Calculate the exponential covariance matrix'''
     df_reversed = df.iloc[::-1]
     n = len(df_reversed)
     weights = np.array([(1 - lambd) * (lambd ** i) for i in range(n)])

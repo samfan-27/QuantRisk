@@ -2,6 +2,7 @@ import numpy as np
 
 
 def simulate_ma(q, theta, n=1000):
+    '''MA simulation'''
     noise = np.random.normal(size=n)
     ma_process = noise.copy()
     
@@ -12,6 +13,7 @@ def simulate_ma(q, theta, n=1000):
 
 
 def simulate_ar(p, phi, n=1000):
+    '''AR simulation'''
     noise = np.random.normal(size=n)
     ar_process = np.zeros(n)
     for t in range(p, n):

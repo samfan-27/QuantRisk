@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from exponential_covariance_mat import calculate_exponential_covariance
 
 
-# Manual PCA
 def manualPCA(df, lambdas):
+    '''Manual PCA'''
     for lambd in lambdas:
         cov_matrix = calculate_exponential_covariance(df, lambd)
         eigenvalues, _ = np.linalg.eigh(cov_matrix)
@@ -28,10 +28,9 @@ def manualPCA(df, lambdas):
     plt.show()
     
     
-# sklearn PCA
 from sklearn.decomposition import PCA
-
 def sklearnPCA(lambdas, returns):
+    '''sklearn PCA'''
     for lambd in lambdas:
         n = len(returns)
         
@@ -61,8 +60,8 @@ def sklearnPCA(lambdas, returns):
     plt.show()
     
 
-# simulate PCA
 def simulate_pca(cov_matrix, n_samples=10000, var_explained=0.75):
+    '''PCA simulation'''
     const = 1
     eigen_vals, eigen_vecs = np.linalg.eigh(cov_matrix)
     idx = np.argsort(eigen_vals)[::-1]

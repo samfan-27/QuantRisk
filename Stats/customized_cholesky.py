@@ -2,7 +2,7 @@ import numpy as np
 
 
 def chol_psd(a, tol=1e-10):
-    '''deal with the very small negative values and floating point errors'''
+    '''Deal with the very small negative values and floating point errors'''
     a = np.asarray(a, dtype=np.float64)
 
     n = a.shape[0]
