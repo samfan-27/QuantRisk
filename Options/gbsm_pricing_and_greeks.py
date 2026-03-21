@@ -62,7 +62,7 @@ def calculate_gbsm_metrics(S, K, T, r, q, sigma, opt_type):
         value, delta, rho, theta = np.nan, np.nan, np.nan, np.nan 
     return value, delta, gamma, vega, rho, theta
 
-def process_options_data(input_file, output_file):
+def process_options_data(input_file):
     """
     Reads the options universe, processes GBSM metrics iteratively.
     """
@@ -98,9 +98,8 @@ def process_options_data(input_file, output_file):
 
 if __name__ == "__main__":
     try:
-        INPUT_FILE = "test12_1.csv"
-        OUTPUT_FILE = "testout_12.1.csv"
-        process_options_data(INPUT_FILE, OUTPUT_FILE)
+        INPUT_FILE = "data/test12_1.csv"
+        process_options_data(INPUT_FILE)
         
     except FileNotFoundError:
         print("Data file not found. Please check the path.")
