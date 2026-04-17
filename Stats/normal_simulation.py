@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import time
 
 def simulate_multivariate_normal(cov_matrix, n_sims=100000, seed=None):
     """
@@ -23,10 +22,9 @@ def simulate_multivariate_normal(cov_matrix, n_sims=100000, seed=None):
         cov = np.asarray(cov_matrix)
 
     if cov.shape[0] != cov.shape[1]:
-        raise ValueError("Covariance matrix must be square.")
+        raise ValueError('Covariance matrix must be square.')
 
     rng = np.random.default_rng(seed)
-    
     mean = np.zeros(cov.shape[0])
 
     # Simulation
@@ -36,14 +34,17 @@ def simulate_multivariate_normal(cov_matrix, n_sims=100000, seed=None):
     try:
         simulated_data = rng.multivariate_normal(mean, cov, size=n_sims, method='cholesky')
     except np.linalg.LinAlgError:
-        print("Warning: Matrix is not Positive Definite. Falling back to SVD method.")
+        print('Warning: Matrix is not Positive Definite. Falling back to SVD method.')
         simulated_data = rng.multivariate_normal(mean, cov, size=n_sims, method='svd')
 
     return simulated_data
 
-def compare_matrices(matrix_a, matrix_b, title="Comparison"):
+def compare_matrices(matrix_a, matrix_b):
     """
     Calculates the difference between two matrices.
+    
+    Returns:
+        tuple: (frobenius_norm, max_absolute_difference)
     """
     if isinstance(matrix_a, pd.DataFrame):
         matrix_a = matrix_a.values
@@ -52,20 +53,21 @@ def compare_matrices(matrix_a, matrix_b, title="Comparison"):
 
     diff = matrix_a - matrix_b
     frobenius_norm = np.linalg.norm(diff)
+    max_diff = np.max(np.abs(diff))
     
-    print(f"\n--- {title} ---")
-    print(f"Frobenius Norm (Total Difference): {frobenius_norm:.6f}")
-    print(f"Max Absolute Element Difference:   {np.max(np.abs(diff)):.6f}")
+    return frobenius_norm, max_diff
 
-def main():
+if __name__ == "__main__":
+    import time
+    
     try:
-        input_file = 'data/test5_1.csv'
+        input_file = '../data/test5_1.csv'
         input_cov_df = pd.read_csv(input_file)
         
         start_time = time.time()
         
         n_sims = 100000
-        print(f"Running {n_sims} simulations based on {input_file}...")
+        print(f'Running {n_sims} simulations based on {input_file}...')
         simulated_returns = simulate_multivariate_normal(input_cov_df, n_sims=n_sims, seed=3)
         
         # Calculate Output Covariance from Simulation
@@ -79,19 +81,21 @@ def main():
         )
         
         elapsed = time.time() - start_time
-        print(f"Simulation complete in {elapsed:.4f} seconds.")
+        print(f'Simulation complete in {elapsed:.4f} seconds.')
 
-        print("\nInput Covariance")
+        print('\nInput Covariance')
         print(input_cov_df)
         
-        print("\nSimulated Covariance")
+        print('\nSimulated Covariance')
         print(simulated_cov_df)
 
-        compare_matrices(input_cov_df, simulated_cov_df, title="Input vs. Simulated Covariance")
+        # Use our refactored utility function
+        f_norm, m_diff = compare_matrices(input_cov_df, simulated_cov_df)
+        
+        print('\n--- Input vs. Simulated Covariance ---')
+        print(f'Frobenius Norm (Total Difference): {f_norm:.6f}')
+        print(f'Max Absolute Element Difference:   {m_diff:.6f}')
 
     except FileNotFoundError:
-        print("Data file not found. Please check the path.")
-
-if __name__ == "__main__":
-    main()
-    
+        print(f"Data file '{input_file}' not found. Please check the path and ensure you are running this from the Stats/ directory.")
+        
