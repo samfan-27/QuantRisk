@@ -1,82 +1,103 @@
 import numpy as np
 import pandas as pd
-from scipy.stats import norm
+from scipy.stats import norm, t
+from scipy.integrate import quad
 
-def calculate_parametric_es(returns, alpha=0.05):
+def _sanitize_returns(returns):
+    if isinstance(returns, pd.DataFrame):
+        if returns.shape[1] > 1:
+            raise ValueError('Input must be a single series of returns, not a multi-column DataFrame.')
+        returns = returns.iloc[:, 0]
+        
+    returns = np.asarray(returns)
+    if returns.size == 0:
+        raise ValueError('Input returns cannot be empty.')
+        
+    return returns
+
+def calculate_normal_es(returns, alpha=0.05):
     """
-    Calculates Expected Shortfall (ES), also known as Conditional VaR (CVaR),
-    using a Normal Distribution assumption.
-
-    ES measures the average loss in the tail cases where losses exceed the VaR.
+    Calculates Expected Shortfall (ES) using a Normal Distribution assumption.
+    Also known as Conditional VaR (CVaR).
 
     Parameters:
         returns (pd.Series or np.array): A series of asset or portfolio returns.
         alpha (float): The significance level (default 0.05 for 95% confidence).
 
     Returns:
-        dict: A dictionary containing:
-            - 'ES_Absolute': The expected loss magnitude given that the threshold is breached.
-            - 'ES_Relative': The difference between the mean return and the ES.
-            - 'VaR_Breakpoint': The VaR threshold used to define the tail (for reference).
-            - 'Mean': The mean return.
-            - 'Std_Dev': The standard deviation of returns.
+        dict: Absolute ES, Relative ES, VaR Breakpoint, Mean, and Standard Deviation.
     """
-    # Ensure input is a valid 1D array-like structure
-    if isinstance(returns, pd.DataFrame):
-        if returns.shape[1] > 1:
-            raise ValueError("Input must be a single series of returns, not a multi-column DataFrame.")
-        returns = returns.iloc[:, 0]
-        
-    returns = np.asarray(returns)
-    if len(returns) == 0:
-        raise ValueError("Input returns cannot be empty.")
-
-    # Calculate statistics
+    returns = _sanitize_returns(returns)
     mu = np.mean(returns)
     sigma = np.std(returns, ddof=1)
     
-    # Calculate Z-score for the VaR cutoff
     z_cutoff = norm.ppf(alpha)
-    
-    # Calculate Expected Shortfall (Normal Distribution Formula)
-    # Formula: ES = mu - sigma * (pdf(z) / alpha)
-    # The term (pdf(z) / alpha) represents the expected value of the standard normal variable 
-    # conditional on it being less than z.
+    # mu - sigma * (pdf(z_cutoff) / alpha)
     pdf_at_cutoff = norm.pdf(z_cutoff)
     es_value = mu - sigma * (pdf_at_cutoff / alpha)
     
-    # Calculate VaR for reference (the starting point of the tail)
+    # VaR for reference
     var_value = mu + (z_cutoff * sigma)
 
-    # Absolute ES: The average loss magnitude (represented as a positive number).
-    es_absolute = -es_value if es_value < 0 else 0
-    
-    # Relative ES: The distance from the mean to the ES value.
-    es_relative = mu - es_value
-
     return {
-        "ES_Absolute": es_absolute,
-        "ES_Relative": es_relative,
-        "VaR_Breakpoint": var_value,
-        "Mean": mu,
-        "Std_Dev": sigma
+        'ES_Absolute': max(-es_value, 0.0),
+        'ES_Relative': mu - es_value,
+        'VaR_Breakpoint': var_value,
+        'Mean': mu,
+        'Std_Dev': sigma
     }
 
-# Example usage for testing
-if __name__ == "__main__":
-    try:
-        data = pd.read_csv('test7_1.csv')
-        
-        # Calculate ES using the 'x1' column
-        results = calculate_parametric_es(data['x1'], alpha=0.05)
+def calculate_t_es(returns, alpha=0.05):
+    """
+    Calculates Expected Shortfall (ES) by fitting a Student's t-distribution 
+    to the data and integrating the tail.
 
-        print("--- Parametric Expected Shortfall (Normal) ---")
-        print(f"Mean Return:       {results['Mean']:.6f}")
-        print(f"Std Dev:           {results['Std_Dev']:.6f}")
-        print("-" * 40)
-        print(f"ES (Absolute):     {results['ES_Absolute']:.6f}")
-        print(f"ES (Relative):     {results['ES_Relative']:.6f}")
-        print(f"VaR Breakpoint:    {results['VaR_Breakpoint']:.6f}")
+    Parameters:
+        returns (pd.Series or np.array): A series of asset or portfolio returns.
+        alpha (float): The significance level (default 0.05 for 95% confidence).
+
+    Returns:
+        dict: Absolute ES, Relative ES, VaR Breakpoint, df, loc, and scale.
+    """
+    returns = _sanitize_returns(returns)
+    nu, mu, sigma = t.fit(returns)
+
+    var_cutoff = t.ppf(alpha, df=nu, loc=mu, scale=sigma)
+
+    def integrand(x):
+        return x * t.pdf(x, df=nu, loc=mu, scale=sigma)
+
+    # Integrate from negative infinity to the VaR cutoff
+    integral_result, _ = quad(integrand, -np.inf, var_cutoff)
+    
+    expected_tail_loss = integral_result / alpha
+
+    return {
+        'ES_Absolute': max(-expected_tail_loss, 0.0),
+        'ES_Relative': mu - expected_tail_loss,
+        'VaR_Breakpoint': var_cutoff,
+        'df': nu,
+        'loc': mu,
+        'scale': sigma
+    }
+
+if __name__ == '__main__':
+    try:
+        data = pd.read_csv('../data/test7_2.csv')
+        
+        norm_results = calculate_normal_es(data['x1'], alpha=0.05)
+        print('--- Normal Expected Shortfall ---')
+        print(f'Absolute ES:     {norm_results["ES_Absolute"]:.6f}')
+        print(f'Relative ES:     {norm_results["ES_Relative"]:.6f}')
+        print(f'VaR Breakpoint:  {norm_results["VaR_Breakpoint"]:.6f}')
+        
+        t_results = calculate_t_es(data['x1'], alpha=0.05)
+        print("\n--- Student's t Expected Shortfall ---")
+        print(f'Absolute ES:     {t_results["ES_Absolute"]:.6f}')
+        print(f'Relative ES:     {t_results["ES_Relative"]:.6f}')
+        print(f'VaR Breakpoint:  {t_results["VaR_Breakpoint"]:.6f}')
+        print(f'Degrees of Free: {t_results["df"]:.4f}')
 
     except FileNotFoundError:
-        print("Data file not found. Please check the path.")
+        print('Data file not found. Ensure you are running from the Risk/ directory.')
+        
