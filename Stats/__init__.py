@@ -17,6 +17,14 @@ from .time_series_simulation import (
     simulate_ou
 )
 
+# Time Series Parameter Estimation
+from .time_series_estimation import (
+    estimate_arima,
+    estimate_garch,
+    estimate_gbm,
+    estimate_ou
+)
+
 # Multivariate Normal Simulation
 from .normal_simulation import (
     simulate_multivariate_normal,
@@ -62,7 +70,11 @@ __all__ = [
     "simulate_garch",
     "simulate_gbm",
     "simulate_ou",
-    
+    "estimate_arima",
+    "estimate_garch",
+    "estimate_gbm",
+    "estimate_ou",
+
     # Normal Simulation
     "simulate_multivariate_normal",
     "compare_matrices",
