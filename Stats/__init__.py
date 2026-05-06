@@ -25,6 +25,12 @@ from .time_series_estimation import (
     estimate_ou
 )
 
+# Time Series Diagnostics
+from .time_series_diagnostics import (
+    test_stationarity,
+    test_residual_diagnostics
+)
+
 # Multivariate Normal Simulation
 from .normal_simulation import (
     simulate_multivariate_normal,
@@ -74,6 +80,8 @@ __all__ = [
     "estimate_garch",
     "estimate_gbm",
     "estimate_ou",
+    "test_stationarity",
+    "test_residual_diagnostics",
 
     # Normal Simulation
     "simulate_multivariate_normal",
