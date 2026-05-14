@@ -44,3 +44,40 @@ def higham_nearest_correlation(a, max_iter=100, tol=1e-8):
         x_old, y_old = x.copy(), y.copy()
         
     return x
+
+def fix_non_psd_covariance(cov_matrix, max_iter=100, tol=1e-8):
+    """
+    Fixes a non-PSD Covariance matrix
+    by applying Higham's method to its underlying Correlation matrix.
+    
+    Parameters:
+        cov_matrix (np.ndarray): The input covariance matrix (potentially non-PSD).
+        max_iter (int): Maximum iterations for Higham's method.
+        tol (float): Convergence tolerance.
+        
+    Returns:
+        np.ndarray: The nearest PSD covariance matrix.
+    """
+    cov_matrix = np.asarray(cov_matrix)
+    
+    # Extract variances and calculate volatilities
+    variances = np.diag(cov_matrix)
+    volatilities = np.sqrt(np.maximum(variances, 0))
+    
+    # Convert Covariance to Correlation Matrix
+    outer_vols = np.outer(volatilities, volatilities)
+    corr_matrix = np.divide(cov_matrix, outer_vols, 
+                            out=np.zeros_like(cov_matrix), 
+                            where=outer_vols!=0)
+    
+    np.fill_diagonal(corr_matrix, 1.0)
+    
+    psd_corr = higham_nearest_correlation(corr_matrix, max_iter=max_iter, tol=tol)
+    
+    psd_cov = psd_corr * outer_vols
+    return psd_cov
+
+def is_psd(matrix, tol=1e-8):
+    """Utility to check if a matrix is Positive Semi-Definite."""
+    eigvals = np.linalg.eigvalsh(matrix)
+    return np.all(eigvals >= -tol)

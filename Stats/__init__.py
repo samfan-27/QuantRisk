@@ -57,7 +57,9 @@ from .psd_rebonato_jackel import (
     near_psd
 )
 from .psd_higham import (
-    higham_nearest_correlation
+    higham_nearest_correlation,
+    fix_non_psd_covariance,
+    is_psd
 )
 
 # Principal Component Analysis (PCA)
@@ -99,6 +101,8 @@ __all__ = [
     "simulate_with_cholesky",
     "near_psd",
     "higham_nearest_correlation",
+    "fix_non_psd_covariance",
+    "is_psd",
     
     # PCA
     "exp_weighted_pca",
