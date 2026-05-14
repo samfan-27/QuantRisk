@@ -9,7 +9,10 @@ ES/CVaR, and N-asset Copula simulations.
 # VaR
 from .var_models import (
     calculate_normal_var,
-    calculate_t_var
+    calculate_t_var,
+    calculate_delta_normal_portfolio_var,
+    calculate_historical_var,
+    calculate_mc_var
 )
 
 # ES
@@ -27,6 +30,9 @@ __all__ = [
     # VaR
     "calculate_normal_var",
     "calculate_t_var",
+    "calculate_delta_normal_portfolio_var",
+    "calculate_historical_var",
+    "calculate_mc_var",
     
     # ES
     "calculate_normal_es",

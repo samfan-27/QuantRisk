@@ -28,10 +28,10 @@ Contains portfolio optimization tools and ex-post performance tracking.
 
 Implements risk measurement metrics.
 
-* **Value at Risk (VaR)**: Parametric (Normal and Student's t).
+* **Value at Risk (VaR)**: Parametric (Normal and Student's t), Monte Carlo, and Histoical Simulation.
 * **Expected Shortfall (ES / CVaR)**: Parametric (Normal and Student's t).
 * **Simulation**: N-asset Copula-based VaR and ES simulations.
-* **Key Functions**: `calculate_normal_var`, `calculate_t_var`, `calculate_normal_es`, `calculate_t_es`, `calculate_copula_var_es`.
+* **Key Functions**: `calculate_normal_var`, `calculate_t_var`, `calculate_delta_normal_portfolio_var`, `calculate_historical_var`, `calculate_mc_var`, `calculate_normal_es`, `calculate_t_es`, `calculate_copula_var_es`.
 
 ### 4. `Stats` (Statistics and Simulation Module)
 
@@ -54,7 +54,7 @@ cd QuantRisk
 pip install -r requirements.txt
 ```
 
-*Core Dependencies:* `numpy`, `pandas`, `scipy`, `scikit-learn`.
+*Core Dependencies:* `numpy`, `pandas`, `scipy`, `scikit-learn`, `arch`.
 
 ## Quick Start / Usage Examples
 
